@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
-import { Upload, Paste, CheckCircle } from "lucide-react";
+import { Upload, Copy, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 export function ImportTest() {
@@ -111,7 +111,7 @@ export function ImportTest() {
                 className="h-48 bg-secondary/30 border-border/30 text-white placeholder:text-muted-foreground/50 mb-4 resize-none"
               />
               <Button onClick={handleJsonImport} disabled={!jsonInput || loading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
-                <Paste className="w-4 h-4" />
+                <Copy className="w-4 h-4" />
                 {loading ? "Parsing..." : "Import Test"}
               </Button>
             </Card>

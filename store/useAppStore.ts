@@ -6,12 +6,14 @@ interface AppState {
   testBanks: TestBank[];
   testResults: TestResult[];
   currentAttempt: TestAttempt | null;
+  timeMultiplier: number;
   addTestBank: (test: TestBank) => void;
   deleteTestBank: (id: string) => void;
   startTest: (testId: string) => void;
   endTest: (answers: Record<number, string | null>, timePerQuestion: Record<number, number>) => void;
   updateAnswers: (questionId: number, answer: "A" | "B" | "C" | "D" | null) => void;
   toggleMarkForReview: (questionId: number) => void;
+  setTimeMultiplier: (multiplier: number) => void;
   getCurrentTest: () => TestBank | undefined;
   getTestResults: () => TestResult[];
   getDashboardStats: () => { totalTests: number; avgAccuracy: number; totalTime: number };
@@ -44,6 +46,11 @@ export const useAppStore = create<AppState>((set, get) => {
     testBanks: initial.testBanks,
     testResults: initial.testResults,
     currentAttempt: null,
+    timeMultiplier: 1,
+
+    setTimeMultiplier: (multiplier: number) => {
+      set({ timeMultiplier: multiplier });
+    },
 
     saveToStorage: () => {
       if (typeof window === "undefined") return;

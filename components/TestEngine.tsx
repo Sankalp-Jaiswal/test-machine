@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
-import { Clock, BookmarkX, Bookmark } from "lucide-react";
+import { Clock, BookmarkX, Bookmark, Plus, Minus } from "lucide-react";
 import toast from "react-hot-toast";
 
 const TOASTER = () => {
@@ -34,6 +34,8 @@ export function TestEngine({ testId }: { testId: string }) {
   const toggleMark = useAppStore((state) => state.toggleMarkForReview);
   const endTest = useAppStore((state) => state.endTest);
   const startTest = useAppStore((state) => state.startTest);
+  const timeMultiplier = useAppStore((state) => state.timeMultiplier);
+  const setTimeMultiplier = useAppStore((state) => state.setTimeMultiplier);
 
   useEffect(() => {
     setMounted(true);
@@ -47,7 +49,7 @@ export function TestEngine({ testId }: { testId: string }) {
 
   useEffect(() => {
     if (!test || !mounted) return;
-    const totalSeconds = test.duration * 60;
+    const totalSeconds = Math.round(test.duration * 60 * timeMultiplier);
     setTimeLeft(totalSeconds);
 
     const interval = setInterval(() => {
@@ -61,7 +63,7 @@ export function TestEngine({ testId }: { testId: string }) {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [test, mounted]);
+  }, [test, mounted, timeMultiplier]);
 
   const handleSubmit = () => {
     if (!currentAttempt || !test) return;
@@ -96,11 +98,38 @@ export function TestEngine({ testId }: { testId: string }) {
         {/* Left Panel - Question */}
         <div className="flex-1 overflow-auto">
           <div className="max-w-3xl mx-auto p-6 lg:p-8">
-            {/* Timer */}
+            {/* Timer with Controls */}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8">
-              <div className={`flex items-center gap-2 text-lg font-bold ${isTimeWarning ? "text-red-500" : "text-primary"}`}>
-                <Clock className="w-5 h-5" />
-                {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
+              <div className="flex items-center justify-between">
+                <div className={`flex items-center gap-2 text-lg font-bold ${isTimeWarning ? "text-red-500" : "text-primary"}`}>
+                  <Clock className="w-5 h-5" />
+                  {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
+                </div>
+                
+                {/* Time Multiplier Controls */}
+                <div className="flex items-center gap-2 bg-secondary/30 rounded-lg p-2 border border-border/30">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setTimeMultiplier(Math.max(0.5, timeMultiplier - 0.25))}
+                    className="h-8 w-8 p-0 hover:bg-primary/20"
+                    disabled={timeMultiplier <= 0.5}
+                  >
+                    <Minus className="w-4 h-4" />
+                  </Button>
+                  <div className="px-3 py-1 text-sm font-semibold text-white min-w-[60px] text-center">
+                    {(timeMultiplier * 100).toFixed(0)}%
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setTimeMultiplier(Math.min(2, timeMultiplier + 0.25))}
+                    className="h-8 w-8 p-0 hover:bg-primary/20"
+                    disabled={timeMultiplier >= 2}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </motion.div>
 
