@@ -1,12 +1,13 @@
 "use client";
 
 import { TestEngine } from "@/components/TestEngine";
-import { Suspense } from "react";
+import { Suspense, use } from "react";
 
-export default function TestPage({ params }: { params: { id: string } }) {
+export default function TestPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-screen text-muted-foreground">Loading test...</div>}>
-      <TestEngine testId={params.id} />
+      <TestEngine testId={id} />
     </Suspense>
   );
 }

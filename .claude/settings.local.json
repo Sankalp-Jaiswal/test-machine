@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(npx --package typescript -- tsc --noEmit)",
+      "Bash(pnpm add *)",
+      "PowerShell(pnpm add next-auth@beta \"@auth/mongodb-adapter\" 2>&1)",
+      "PowerShell(npm add next-auth@beta \"@auth/mongodb-adapter\" 2>&1)",
+      "PowerShell(npm add next-auth@beta \"@auth/mongodb-adapter\" --legacy-peer-deps 2>&1)",
+      "PowerShell(npm i bcryptjs --legacy-peer-deps 2>&1)",
+      "PowerShell(npm i -D \"@types/bcryptjs\" --legacy-peer-deps 2>&1)"
+    ]
+  }
+}

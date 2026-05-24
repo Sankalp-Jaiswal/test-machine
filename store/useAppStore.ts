@@ -1,39 +1,28 @@
 import { create } from "zustand";
-import { TestBank, TestAttempt, TestResult } from "@/types";
+import { TestBank, TestAttempt, TestResult, QuestionAttempt } from "@/types";
 import { DEMO_TESTS } from "@/lib/demoData";
 
 interface AppState {
   testBanks: TestBank[];
   testResults: TestResult[];
   currentAttempt: TestAttempt | null;
-  addTestBank: (test: TestBank) => void;
-  deleteTestBank: (id: string) => void;
+  isInitialized: boolean;
+  addTestBank: (test: TestBank) => Promise<void>;
+  deleteTestBank: (id: string) => Promise<void>;
   startTest: (testId: string) => void;
-  endTest: (answers: Record<number, string | null>, timePerQuestion: Record<number, number>) => void;
+  endTest: (answers: Record<number, string | null>, timePerQuestion: Record<number, number>) => Promise<void>;
   updateAnswers: (questionId: number, answer: "A" | "B" | "C" | "D" | null) => void;
   toggleMarkForReview: (questionId: number) => void;
   getCurrentTest: () => TestBank | undefined;
   getTestResults: () => TestResult[];
   getDashboardStats: () => { totalTests: number; avgAccuracy: number; totalTime: number };
-  loadFromStorage: () => void;
+  loadFromStorage: () => Promise<void>;
   saveToStorage: () => void;
 }
 
 const loadInitialState = () => {
+  // synchronous fallback (used during server-side rendering)
   if (typeof window === "undefined") return { testBanks: DEMO_TESTS, testResults: [] };
-  
-  try {
-    const saved = localStorage.getItem("cil-prep-arena");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return {
-        testBanks: parsed.testBanks || DEMO_TESTS,
-        testResults: parsed.testResults || [],
-      };
-    }
-  } catch (e) {
-    console.error("Failed to load from storage:", e);
-  }
   return { testBanks: DEMO_TESTS, testResults: [] };
 };
 
@@ -44,8 +33,10 @@ export const useAppStore = create<AppState>((set, get) => {
     testBanks: initial.testBanks,
     testResults: initial.testResults,
     currentAttempt: null,
+    isInitialized: false,
 
     saveToStorage: () => {
+      // keep localStorage as a fallback offline cache
       if (typeof window === "undefined") return;
       try {
         localStorage.setItem(
@@ -60,25 +51,86 @@ export const useAppStore = create<AppState>((set, get) => {
       }
     },
 
-    loadFromStorage: () => {
-      const initial = loadInitialState();
-      set({
-        testBanks: initial.testBanks,
-        testResults: initial.testResults,
-      });
+    loadFromStorage: async () => {
+      if (typeof window === "undefined") return;
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+        const [banksRes, resultsRes] = await Promise.all([
+          fetch(`/api/test-banks`, { signal: controller.signal }).then((r) => (r.ok ? r.json() : { __unauth: r.status === 401 })),
+          fetch(`/api/test-results`, { signal: controller.signal }).then((r) => (r.ok ? r.json() : { __unauth: r.status === 401 })),
+        ]);
+
+        clearTimeout(timeout);
+
+        // unauthenticated — show demo content only, do not surface a server failure
+        if (
+          (banksRes && typeof banksRes === "object" && banksRes.__unauth) ||
+          (resultsRes && typeof resultsRes === "object" && resultsRes.__unauth)
+        ) {
+          set({ testBanks: DEMO_TESTS, testResults: [], isInitialized: true });
+          return;
+        }
+
+        const testBanks = Array.isArray(banksRes) && banksRes.length > 0 ? banksRes : DEMO_TESTS;
+        const testResults = Array.isArray(resultsRes) ? resultsRes : [];
+
+        set({ testBanks, testResults, isInitialized: true });
+        get().saveToStorage();
+      } catch (e) {
+        console.error("Failed to load from server, falling back to local cache:", e);
+        const saved = (() => {
+          try {
+            const s = localStorage.getItem("cil-prep-arena");
+            return s ? JSON.parse(s) : null;
+          } catch (_) {
+            return null;
+          }
+        })();
+        set({
+          testBanks: saved?.testBanks || DEMO_TESTS,
+          testResults: saved?.testResults || [],
+          isInitialized: true,
+        });
+      }
     },
 
-    addTestBank: (test: TestBank) => {
-      set((state) => ({
-        testBanks: [...state.testBanks, test],
-      }));
+    addTestBank: async (test: TestBank) => {
+      set((state) => ({ testBanks: [...state.testBanks, test] }));
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+
+        await fetch(`/api/test-banks`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(test),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+      } catch (e) {
+        console.error("Failed to save test bank to server:", e);
+      }
       get().saveToStorage();
     },
 
-    deleteTestBank: (id: string) => {
-      set((state) => ({
-        testBanks: state.testBanks.filter((test) => test.id !== id),
-      }));
+    deleteTestBank: async (id: string) => {
+      set((state) => ({ testBanks: state.testBanks.filter((test) => test.id !== id) }));
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+
+        await fetch(`/api/test-banks/${encodeURIComponent(id)}`, {
+          method: "DELETE",
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+      } catch (e) {
+        console.error("Failed to delete test bank on server:", e);
+      }
       get().saveToStorage();
     },
 
@@ -99,7 +151,7 @@ export const useAppStore = create<AppState>((set, get) => {
       }
     },
 
-    endTest: (answers, timePerQuestion) => {
+    endTest: async (answers, timePerQuestion) => {
       const attempt = get().currentAttempt;
       const testBanks = get().testBanks;
       if (!attempt) return;
@@ -114,10 +166,13 @@ export const useAppStore = create<AppState>((set, get) => {
       let skippedCount = 0;
       const sectionPerf: Record<string, { correct: number; total: number }> = {};
       const difficultyPerf: Record<string, { correct: number; total: number }> = {};
+      const questionAttempts: QuestionAttempt[] = [];
 
       test.questions.forEach((q) => {
-        const isCorrect = answers[q.id] === q.correctAnswer;
-        if (answers[q.id] === null) skippedCount++;
+        const userAnswer = answers[q.id] ?? null;
+        const isSkipped = userAnswer === null;
+        const isCorrect = !isSkipped && userAnswer === q.correctAnswer;
+        if (isSkipped) skippedCount++;
         if (isCorrect) correctCount++;
 
         if (!sectionPerf[q.section]) sectionPerf[q.section] = { correct: 0, total: 0 };
@@ -129,6 +184,21 @@ export const useAppStore = create<AppState>((set, get) => {
           sectionPerf[q.section].correct++;
           difficultyPerf[q.difficulty].correct++;
         }
+
+        questionAttempts.push({
+          questionId: q.id,
+          section: q.section,
+          difficulty: q.difficulty,
+          question: q.question,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+          userAnswer,
+          isCorrect,
+          isSkipped,
+          isMarked: attempt.markedForReview?.has?.(q.id) ?? false,
+          timeSpent: timePerQuestion?.[q.id] ?? 0,
+          explanation: q.explanation,
+        });
       });
 
       const result: TestResult = {
@@ -144,12 +214,25 @@ export const useAppStore = create<AppState>((set, get) => {
         completedAt,
         sectionPerformance: sectionPerf,
         difficultyPerformance: difficultyPerf,
+        questionAttempts,
       };
 
-      set((state) => ({
-        testResults: [...state.testResults, result],
-        currentAttempt: null,
-      }));
+      set((state) => ({ testResults: [...state.testResults, result], currentAttempt: null }));
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+
+        await fetch(`/api/test-results`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(result),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+      } catch (e) {
+        console.error("Failed to save test result to server:", e);
+      }
       get().saveToStorage();
     },
 
@@ -213,3 +296,14 @@ export const useAppStore = create<AppState>((set, get) => {
     },
   };
 });
+
+// Auto-initialize store from server when running in the browser
+if (typeof window !== "undefined") {
+  (async () => {
+    try {
+      await useAppStore.getState().loadFromStorage();
+    } catch (e) {
+      // ignore
+    }
+  })();
+}

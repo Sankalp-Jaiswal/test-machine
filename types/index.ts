@@ -32,6 +32,21 @@ export interface TestAttempt {
   timePerQuestion: Record<number, number>;
 }
 
+export interface QuestionAttempt {
+  questionId: number;
+  section: string;
+  difficulty: "easy" | "medium" | "hard";
+  question: string;
+  options: { A: string; B: string; C: string; D: string };
+  correctAnswer: "A" | "B" | "C" | "D";
+  userAnswer: "A" | "B" | "C" | "D" | null;
+  isCorrect: boolean;
+  isSkipped: boolean;
+  isMarked: boolean;
+  timeSpent: number;
+  explanation: string;
+}
+
 export interface TestResult {
   attemptId: string;
   testId: string;
@@ -45,6 +60,8 @@ export interface TestResult {
   completedAt: number;
   sectionPerformance: Record<string, { correct: number; total: number }>;
   difficultyPerformance: Record<string, { correct: number; total: number }>;
+  /** Per-question record for post-test review (which questions were wrong, your answer, etc.) */
+  questionAttempts?: QuestionAttempt[];
 }
 
 export interface AnswerState {
