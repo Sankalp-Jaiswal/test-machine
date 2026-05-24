@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
-import { Upload, Copy, CheckCircle } from "lucide-react";
+import { Upload, Copy, CheckCircle, FileText } from "lucide-react";
 import toast from "react-hot-toast";
+import { parseTestFile, validateTestStructure } from "@/lib/fileParser";
 
 export function ImportTest() {
   const router = useRouter();
@@ -53,20 +54,27 @@ export function ImportTest() {
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const content = event.target?.result as string;
-        setJsonInput(content);
-      } catch {
-        toast.error("Failed to read file");
+    try {
+      setLoading(true);
+      const parsedData = await parseTestFile(file);
+      
+      if (!validateTestStructure(parsedData)) {
+        throw new Error("Invalid test structure. Required fields: testName, duration, questions[]");
       }
-    };
-    reader.readAsText(file);
+
+      // Convert to JSON string for display
+      setJsonInput(JSON.stringify(parsedData, null, 2));
+      toast.success(`File parsed successfully: ${file.name}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to parse file");
+      setJsonInput("");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleConfirmImport = () => {
@@ -94,7 +102,7 @@ export function ImportTest() {
                 </div>
                 <p className="text-white font-semibold mb-1">Upload JSON File</p>
                 <p className="text-sm text-muted-foreground text-center mb-4">Drag and drop or click to select</p>
-                <input type="file" accept=".json" onChange={handleFileUpload} className="hidden" />
+                <input type="file" accept=".json,.docx,.pdf" onChange={handleFileUpload} className="hidden" disabled={loading} />
                 <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">Select File</Button>
               </label>
             </Card>
