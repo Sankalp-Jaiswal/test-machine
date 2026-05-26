@@ -196,9 +196,10 @@ export const useAppStore = create<AppState>((set, get) => {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
 
-        const [banksRes, resultsRes] = await Promise.all([
+        const [banksRes, resultsRes, filtersRes] = await Promise.all([
           fetch(`/api/test-banks`, { signal: controller.signal }).then((r) => (r.ok ? r.json() : { __unauth: r.status === 401 })),
           fetch(`/api/test-results`, { signal: controller.signal }).then((r) => (r.ok ? r.json() : { __unauth: r.status === 401 })),
+          fetch(`/api/paper-filters`, { signal: controller.signal }).then((r) => (r.ok ? r.json() : { __unauth: r.status === 401 })),
         ]);
 
         clearTimeout(timeout);
@@ -218,6 +219,9 @@ export const useAppStore = create<AppState>((set, get) => {
         const resultsUnauthorized = Boolean(
           resultsRes && typeof resultsRes === "object" && (resultsRes as any).__unauth,
         );
+        const filtersUnauthorized = Boolean(
+          filtersRes && typeof filtersRes === "object" && (filtersRes as any).__unauth,
+        );
 
         const testBanksRaw = Array.isArray(banksRes) && banksRes.length > 0 ? banksRes : saved?.testBanks || DEMO_TESTS;
         const testBanks = normalizeTestBankList(testBanksRaw);
@@ -227,14 +231,15 @@ export const useAppStore = create<AppState>((set, get) => {
             : resultsUnauthorized
             ? saved?.testResults || []
             : saved?.testResults || [];
-        const paperFilters = Array.isArray(saved?.paperFilters) ? saved.paperFilters : [];
+        const paperFilters =
+          Array.isArray(filtersRes) ? filtersRes : Array.isArray(saved?.paperFilters) ? saved.paperFilters : [];
 
         // If both are unauthorized, fully fall back to local cache/demo.
-        if (banksUnauthorized && resultsUnauthorized) {
+        if (banksUnauthorized && resultsUnauthorized && filtersUnauthorized) {
           set({
             testBanks: normalizeTestBankList(saved?.testBanks || DEMO_TESTS),
             testResults: saved?.testResults || [],
-            paperFilters,
+            paperFilters: saved?.paperFilters || [],
             isInitialized: true,
           });
           return;
@@ -316,6 +321,13 @@ export const useAppStore = create<AppState>((set, get) => {
         createdAt: Date.now(),
       };
       set((state) => ({ paperFilters: [next, ...state.paperFilters] }));
+      fetch(`/api/paper-filters`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(next),
+      }).catch((e) => {
+        console.error("Failed to save paper filter to server:", e);
+      });
       get().saveToStorage();
       return id;
     },
@@ -324,6 +336,11 @@ export const useAppStore = create<AppState>((set, get) => {
       set((state) => ({
         paperFilters: state.paperFilters.filter((preset) => preset.id !== id),
       }));
+      fetch(`/api/paper-filters/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      }).catch((e) => {
+        console.error("Failed to delete paper filter on server:", e);
+      });
       get().saveToStorage();
     },
 

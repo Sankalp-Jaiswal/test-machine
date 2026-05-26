@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Brain,
@@ -11,6 +12,7 @@ import {
   Menu,
   X,
   ChevronLeft,
+  LogOut,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -103,6 +105,17 @@ export function Sidebar({ collapsed, onToggleCollapsed, mobileOpen, onMobileClos
           title={collapsed ? "Expand" : "Collapse"}
         >
           <ChevronLeft className={`w-4 h-4 transition-transform duration-200 ${collapsed ? "rotate-180" : ""}`} />
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            onMobileClose();
+            signOut({ callbackUrl: "/" });
+          }}
+          className="lg:hidden w-full inline-flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors ring-focus"
+        >
+          <LogOut className="w-4 h-4" />
+          <span>Sign out</span>
         </button>
       </div>
     </div>

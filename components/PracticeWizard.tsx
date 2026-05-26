@@ -7,7 +7,7 @@ import ReviewStep from "./PracticeWizard/ReviewStep";
 import { Layers, Gauge, Hash, Check, Upload, Sparkles, ArrowLeft, ArrowRight, Play } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Question, Difficulty } from "@/types";
 import { useAppStore } from "@/store/useAppStore";
 import { Card } from "@/components/ui/card";
@@ -64,6 +64,7 @@ export function PracticeWizard() {
   const [sessionName, setSessionName] = useState("");
   const [nameTouched, setNameTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const routeSectionApplied = useRef(false);
   const selectedPreset = useMemo(
     () => paperFilters.find((preset) => preset.id === selectedFilterId) ?? null,
     [paperFilters, selectedFilterId],
@@ -73,8 +74,17 @@ export function PracticeWizard() {
     setMounted(true);
   }, []);
 
-  // Default to all sections selected the first time the pool resolves.
+  // Default to all sections selected, unless dashboard linked to a specific section.
   useEffect(() => {
+    if (!routeSectionApplied.current && allSections.length > 0) {
+      routeSectionApplied.current = true;
+      const requested = new URLSearchParams(window.location.search).get("section");
+      if (requested && allSections.includes(requested)) {
+        setSelectedSections([requested]);
+        setStep("difficulty");
+        return;
+      }
+    }
     if (selectedSections.length === 0 && allSections.length > 0) {
       setSelectedSections(allSections);
     }

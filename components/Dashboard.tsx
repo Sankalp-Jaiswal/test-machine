@@ -360,7 +360,7 @@ export function Dashboard() {
                       <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-destructive shrink-0" />{sec.hard} h</span>
                     </div>
                     <button 
-                      onClick={() => router.push("/practice")}
+                      onClick={() => router.push(`/practice?section=${encodeURIComponent(sec.name)}`)}
                       className="opacity-0 group-hover:opacity-100 text-primary font-semibold flex items-center gap-0.5 transition-all duration-200 cursor-pointer"
                     >
                       Practice →
