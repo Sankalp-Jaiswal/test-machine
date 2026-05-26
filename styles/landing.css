@@ -1,0 +1,15 @@
+/* styles/landing.css */
+.landing-hero {
+  background: linear-gradient(135deg, hsl(260 65% 45%) 0%, hsl(290 70% 55%) 100%);
+  color: white;
+  overflow: hidden;
+  position: relative;
+}
+.landing-hero button {
+  backdrop-filter: blur(8px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.landing-hero button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}

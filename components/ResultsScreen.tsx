@@ -366,46 +366,55 @@ export function ResultsScreen({ attemptId }: { attemptId: string }) {
           </motion.div>
         </div>
 
-        {/* Detailed section breakdown */}
+        {/* Compact Summary Card */}
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={{ delay: 0.15 }}
         >
-          <Card className="glass rounded-2xl p-6 border-border/60">
-            <h3 className="text-base font-semibold text-foreground mb-4">
-              Section breakdown
-            </h3>
-            <div className="space-y-3">
-              {sectionData.map((section, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.25 + idx * 0.04 }}
-                  className="rounded-xl p-4 bg-white/2 border border-border/60"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{section.fullName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {section.correct} correct of {section.total}
-                      </p>
-                    </div>
-                    <p className={`text-lg font-bold tabular-nums ${gradeColor(section.percentage)}`}>
-                      {section.percentage}%
-                    </p>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-secondary/60 overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${section.percentage}%` }}
-                      transition={{ duration: 1, ease: [0.2, 0.8, 0.2, 1], delay: 0.3 + idx * 0.05 }}
-                      className="h-full gradient-brand"
-                    />
-                  </div>
-                </motion.div>
-              ))}
+          <Card className="glass rounded-2xl p-6 border-border/60 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-accent" />
+                <h3 className="text-base font-semibold text-foreground">Summary</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <SummaryStat icon={CheckCircle2} label="Correct" value={result.correctAnswers} color="text-success bg-success/10 ring-success/30" />
+                <SummaryStat icon={XCircle} label="Wrong" value={result.wrongAnswers} color="text-destructive bg-destructive/10 ring-destructive/30" />
+                <SummaryStat icon={MinusCircle} label="Skipped" value={result.skipped} color="text-warning bg-warning/10 ring-warning/30" />
+                <SummaryStat icon={Trophy} label="Time" value={result.timeTaken} suffix="s" color="text-primary bg-primary/10 ring-primary/30" />
+              </div>
+            </div>
+
+            {/* Detailed Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full table-auto text-sm border-collapse">
+                <thead className="bg-white/5">
+                  <tr>
+                    <th className="px-2 py-1 text-left">#</th>
+                    <th className="px-2 py-1 text-left">Section</th>
+                    <th className="px-2 py-1 text-left">Difficulty</th>
+                    <th className="px-2 py-1 text-left">Your answer</th>
+                    <th className="px-2 py-1 text-left">Correct</th>
+                    <th className="px-2 py-1 text-left">Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {attempts.map((qa, i) => {
+                    const tone = qa.isCorrect ? "text-success" : qa.isSkipped ? "text-warning" : "text-destructive";
+                    return (
+                      <tr key={qa.questionId} className="border-t border-border/30">
+                        <td className="px-2 py-1">{i + 1}</td>
+                        <td className="px-2 py-1">{qa.section}</td>
+                        <td className="px-2 py-1">{qa.difficulty}</td>
+                        <td className="px-2 py-1">{qa.userAnswer ?? "—"}</td>
+                        <td className="px-2 py-1">{qa.correctAnswer}</td>
+                        <td className={`px-2 py-1 ${tone}`}>{qa.isCorrect ? "Correct" : qa.isSkipped ? "Skipped" : "Wrong"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </Card>
         </motion.div>

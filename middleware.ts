@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/signin"];
+const PUBLIC_PATHS = ["/", "/signin"];
 
 /**
  * Edge-safe gate: just checks for the presence of the NextAuth session cookie.

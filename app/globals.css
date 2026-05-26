@@ -4,85 +4,96 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Premium dark theme — matte black + zinc surfaces, indigo→violet primary,
-  cyan accent. HSL values; consumed via @theme inline below.
+  Premium, modern, minimal light-theme UI tokens.
+  Resembles Linear, Notion, Vercel, and Stripe dashboards.
 */
 :root {
-  --background: 240 10% 3%;            /* near-black with hint of cool */
-  --foreground: 0 0% 98%;
-  --card: 240 8% 6%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 8% 7%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 252 87% 67%;              /* indigo / violet */
-  --primary-foreground: 0 0% 100%;
-  --secondary: 240 6% 12%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 5% 16%;
-  --muted-foreground: 240 5% 65%;
-  --accent: 187 92% 60%;               /* cyan */
-  --accent-foreground: 240 10% 4%;
-  --destructive: 0 84% 60%;
+  --background: 240 6% 98%;            /* #F9F9FA - soft off-white/gray */
+  --foreground: 224 71% 4%;            /* #090D1A - dark slate gray for premium readability */
+  
+  --card: 0 0% 100%;                   /* #FFFFFF - pure white cards */
+  --card-foreground: 224 71% 4%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 71% 4%;
+  
+  --primary: 222 47% 11%;              /* #0F172A - deep charcoal slate primary color */
+  --primary-foreground: 210 40% 98%;   /* #F8FAFC - crisp off-white text */
+  
+  --secondary: 240 5% 96%;             /* #F3F4F6 - soft light gray */
+  --secondary-foreground: 222 47% 11%;
+  
+  --muted: 240 5% 96%;                 /* #F3F4F6 - muted soft gray */
+  --muted-foreground: 240 4% 46%;      /* #6B7280 - medium gray for helper text */
+  
+  --accent: 240 5% 96%;                /* Soft light gray active element highlights */
+  --accent-foreground: 222 47% 11%;
+  
+  --destructive: 0 84% 60%;            /* Red for alerts and wrong selections */
   --destructive-foreground: 0 0% 100%;
-  --success: 152 76% 50%;
-  --warning: 38 95% 60%;
-  --border: 240 6% 14%;
-  --input: 240 6% 10%;
-  --ring: 252 87% 67%;
-  --chart-1: 252 87% 67%;
-  --chart-2: 187 92% 60%;
-  --chart-3: 38 95% 60%;
-  --chart-4: 152 76% 50%;
-  --chart-5: 296 80% 65%;
-  --radius: 0.85rem;
-  --sidebar: 240 8% 6%;
-  --sidebar-foreground: 0 0% 98%;
-  --sidebar-primary: 252 87% 67%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 187 92% 60%;
-  --sidebar-accent-foreground: 240 10% 4%;
-  --sidebar-border: 240 6% 14%;
-  --sidebar-ring: 252 87% 67%;
+  
+  --success: 142 72% 29%;              /* Clean forest green for correct choices (#15803D) */
+  --warning: 38 92% 50%;               /* Sophisticated amber for warning states (#D97706) */
+  
+  --border: 240 6% 90%;                /* #E5E7EB - thin neutral border */
+  --input: 240 6% 90%;                 /* #E5E7EB */
+  --ring: 222 47% 11%;                 /* Charcoal focus ring */
+  
+  --chart-1: 221 83% 53%;              /* Classic Stripe blue for primary analytics */
+  --chart-2: 240 4% 46%;               /* Muted gray for reference analytics */
+  --chart-3: 38 92% 50%;
+  --chart-4: 142 72% 29%;
+  --chart-5: 262 83% 58%;
+  
+  --radius: 0.75rem;                   /* 12px clean rounding */
+  
+  --sidebar: 0 0% 100%;                /* Clean white sidebar */
+  --sidebar-foreground: 224 71% 4%;
+  --sidebar-primary: 222 47% 11%;
+  --sidebar-primary-foreground: 210 40% 98%;
+  --sidebar-accent: 240 5% 96%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-border: 240 6% 90%;
+  --sidebar-ring: 222 47% 11%;
 }
 
+/* 
+  Enforce light theme variables even in dark class 
+  to satisfy the strict clean minimal light-theme requirement
+*/
 .dark {
-  --background: 240 10% 3%;
-  --foreground: 0 0% 98%;
-  --card: 240 8% 6%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 8% 7%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 252 87% 67%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 240 6% 12%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 5% 16%;
-  --muted-foreground: 240 5% 65%;
-  --accent: 187 92% 60%;
-  --accent-foreground: 240 10% 4%;
+  --background: 240 6% 98%;
+  --foreground: 224 71% 4%;
+  --card: 0 0% 100%;
+  --card-foreground: 224 71% 4%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 71% 4%;
+  --primary: 222 47% 11%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 240 5% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 240 5% 96%;
+  --muted-foreground: 240 4% 46%;
+  --accent: 240 5% 96%;
+  --accent-foreground: 222 47% 11%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --border: 240 6% 14%;
-  --input: 240 6% 10%;
-  --ring: 252 87% 67%;
-  --chart-1: 252 87% 67%;
-  --chart-2: 187 92% 60%;
-  --chart-3: 38 95% 60%;
-  --chart-4: 152 76% 50%;
-  --chart-5: 296 80% 65%;
-  --sidebar: 240 8% 6%;
-  --sidebar-foreground: 0 0% 98%;
-  --sidebar-primary: 252 87% 67%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 187 92% 60%;
-  --sidebar-accent-foreground: 240 10% 4%;
-  --sidebar-border: 240 6% 14%;
-  --sidebar-ring: 252 87% 67%;
+  --border: 240 6% 90%;
+  --input: 240 6% 90%;
+  --ring: 222 47% 11%;
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 224 71% 4%;
+  --sidebar-primary: 222 47% 11%;
+  --sidebar-primary-foreground: 210 40% 98%;
+  --sidebar-accent: 240 5% 96%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-border: 240 6% 90%;
+  --sidebar-ring: 222 47% 11%;
 }
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: 'Inter', 'Geist', 'Geist Fallback', sans-serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -125,7 +136,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring/30;
   }
   html, body {
     @apply bg-background text-foreground;
@@ -133,157 +144,116 @@
     -webkit-font-smoothing: antialiased;
   }
   ::selection {
-    background: hsl(var(--primary) / 0.35);
+    background: hsl(var(--primary) / 0.1);
     color: hsl(var(--foreground));
   }
-  /* Subtle scrollbar */
+  /* Elegant, sleek light scrollbar */
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted) / 0.6);
+    background: rgba(100, 116, 139, 0.2);
     border-radius: 10px;
     border: 2px solid transparent;
     background-clip: padding-box;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted));
+    background: rgba(100, 116, 139, 0.4);
     border: 2px solid transparent;
     background-clip: padding-box;
   }
 }
 
 @layer utilities {
-  /* Layered glass surface — used across cards, navs, palettes */
+  /* Sleek modern shadow details instead of dark heavy glass styles */
   .glass {
-    background: linear-gradient(
-      180deg,
-      hsl(var(--card) / 0.7) 0%,
-      hsl(var(--card) / 0.55) 100%
-    );
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
-    backdrop-filter: blur(14px) saturate(140%);
-    border: 1px solid hsl(var(--border) / 0.7);
-    box-shadow:
-      inset 0 1px 0 0 hsl(0 0% 100% / 0.04),
-      0 1px 0 0 hsl(0 0% 0% / 0.4),
-      0 30px 60px -30px hsl(240 30% 0% / 0.5);
+    background: rgba(255, 255, 255, 0.85);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(229, 231, 235, 0.8);
+    box-shadow: 
+      0 1px 2px 0 rgba(0, 0, 0, 0.03),
+      0 4px 12px -2px rgba(0, 0, 0, 0.02);
   }
+  
   .glass-strong {
-    background: hsl(var(--card) / 0.85);
-    -webkit-backdrop-filter: blur(20px) saturate(150%);
-    backdrop-filter: blur(20px) saturate(150%);
-    border: 1px solid hsl(var(--border));
+    background: #ffffff;
+    border: 1px solid rgba(229, 231, 235, 1);
+    box-shadow: 
+      0 4px 6px -1px rgba(0, 0, 0, 0.02),
+      0 10px 25px -5px rgba(0, 0, 0, 0.04);
   }
+  
   .gradient-text {
-    background: linear-gradient(
-      90deg,
-      hsl(var(--primary)) 0%,
-      hsl(var(--accent)) 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: hsl(var(--foreground));
   }
+  
   .gradient-brand {
-    background: linear-gradient(
-      135deg,
-      hsl(252 87% 67%) 0%,
-      hsl(282 86% 65%) 50%,
-      hsl(187 92% 60%) 100%
-    );
+    background: #090D1A;
   }
-  /* Soft outer glow used on hover */
+  
+  /* Minimal clean hover shadow effect */
   .glow-primary {
-    box-shadow:
-      0 0 0 1px hsl(var(--primary) / 0.35),
-      0 10px 40px -10px hsl(var(--primary) / 0.55);
+    box-shadow: 0 0 0 1px rgba(9, 13, 26, 0.08), 0 8px 24px -6px rgba(9, 13, 26, 0.08);
   }
+  
   .glow-accent {
-    box-shadow:
-      0 0 0 1px hsl(var(--accent) / 0.35),
-      0 10px 40px -10px hsl(var(--accent) / 0.55);
+    box-shadow: 0 0 0 1px rgba(9, 13, 26, 0.08), 0 8px 24px -6px rgba(9, 13, 26, 0.08);
   }
-  /* Ambient page backdrop — animated soft orbs */
+  
+  /* Clean light gray pattern structure for body backdrops */
   .ambient-bg {
     position: relative;
     isolation: isolate;
   }
-  .ambient-bg::before,
-  .ambient-bg::after {
+  
+  .ambient-bg::before {
     content: '';
     position: absolute;
     inset: 0;
     z-index: -1;
     pointer-events: none;
+    background-image: 
+      linear-gradient(to right, rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+    background-size: 64px 64px;
+    -webkit-mask-image: radial-gradient(ellipse at center, black 60%, transparent 100%);
+    mask-image: radial-gradient(ellipse at center, black 60%, transparent 100%);
+    opacity: 0.6;
   }
-  .ambient-bg::before {
-    background:
-      radial-gradient(
-        600px circle at 12% 8%,
-        hsl(252 87% 50% / 0.18),
-        transparent 60%
-      ),
-      radial-gradient(
-        500px circle at 88% 0%,
-        hsl(187 92% 50% / 0.14),
-        transparent 60%
-      ),
-      radial-gradient(
-        700px circle at 50% 100%,
-        hsl(282 86% 55% / 0.10),
-        transparent 60%
-      );
-  }
-  .ambient-bg::after {
-    background-image:
-      linear-gradient(
-        to right,
-        hsl(0 0% 100% / 0.035) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        to bottom,
-        hsl(0 0% 100% / 0.035) 1px,
-        transparent 1px
-      );
-    background-size: 48px 48px;
-    -webkit-mask-image: radial-gradient(
-      ellipse at center,
-      black 30%,
-      transparent 75%
-    );
-    mask-image: radial-gradient(
-      ellipse at center,
-      black 30%,
-      transparent 75%
-    );
-  }
-  /* Lift on hover */
+
+  /* Lift on hover with beautiful timing function */
   .hover-lift {
-    transition:
-      transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      box-shadow 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      border-color 280ms ease;
+    transition: 
+      transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 240ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 240ms ease;
   }
+  
   .hover-lift:hover {
     transform: translateY(-2px);
+    box-shadow: 
+      0 4px 6px -1px rgba(0, 0, 0, 0.01),
+      0 12px 20px -8px rgba(0, 0, 0, 0.04);
+    border-color: rgba(9, 13, 26, 0.15);
   }
-  /* Animated shimmer for skeletons */
+  
+  /* Shimmer effect for light skeletons */
   .skeleton-shimmer {
     background: linear-gradient(
       90deg,
-      hsl(var(--muted) / 0.4) 0%,
-      hsl(var(--muted) / 0.7) 50%,
-      hsl(var(--muted) / 0.4) 100%
+      rgba(243, 244, 246, 0.8) 0%,
+      rgba(229, 231, 235, 0.8) 50%,
+      rgba(243, 244, 246, 0.8) 100%
     );
     background-size: 200% 100%;
-    animation: shimmer 1.6s linear infinite;
+    animation: shimmer 1.5s linear infinite;
   }
+  
   @keyframes shimmer {
     0% {
       background-position: 200% 0;
@@ -292,10 +262,11 @@
       background-position: -200% 0;
     }
   }
+  
   .ring-focus:focus-visible {
     outline: none;
-    box-shadow:
+    box-shadow: 
       0 0 0 2px hsl(var(--background)),
-      0 0 0 4px hsl(var(--ring) / 0.7);
+      0 0 0 4px rgba(9, 13, 26, 0.15);
   }
 }

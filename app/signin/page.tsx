@@ -13,6 +13,7 @@ import {
   Lock,
   User as UserIcon,
   AlertCircle,
+  X,
 } from "lucide-react";
 
 type Mode = "signin" | "signup";
@@ -126,6 +127,14 @@ function SignInPageInner() {
         className="w-full max-w-md"
       >
         <div className="glass rounded-3xl border-border/60 p-8 md:p-10 relative overflow-hidden">
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="absolute top-4 right-4 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/60 bg-background/70 text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary/60"
+            aria-label="Close sign in"
+          >
+            <X className="h-4 w-4" />
+          </button>
           <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-primary/20 blur-3xl" />
           <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-accent/15 blur-3xl" />
 

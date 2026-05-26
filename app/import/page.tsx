@@ -1,6 +1,6 @@
 "use client";
 
-import { Navbar } from "@/components/Navbar";
+import { AppShell } from "@/components/AppShell";
 import dynamic from "next/dynamic";
 
 const ImportTest = dynamic(() => import("@/components/ImportTest").then((mod) => mod.ImportTest), {
@@ -9,13 +9,8 @@ const ImportTest = dynamic(() => import("@/components/ImportTest").then((mod) =>
 
 export default function ImportPage() {
   return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-background w-full">
-        <div className="w-full px-4 sm:px-6 lg:px-10 xl:px-16 py-8">
-          <ImportTest />
-        </div>
-      </main>
-    </>
+    <AppShell>
+      <ImportTest />
+    </AppShell>
   );
 }

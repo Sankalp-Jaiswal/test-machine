@@ -1,20 +1,22 @@
 import { Dashboard } from "@/components/Dashboard";
-import { Navbar } from "@/components/Navbar";
+import { AppShell } from "@/components/AppShell";
+import LandingPage from "@/components/LandingPage";
+import { auth } from "@/auth";
 
 export const metadata = {
-  title: "CIL MT Prep Arena - Dashboard",
+  title: "Test Arena - Dashboard",
   description: "Prepare for CIL MT exams with interactive mock tests",
 };
 
-export default function Page() {
+export default async function Page() {
+  const session = await auth();
+  if (!session?.user) {
+    return <LandingPage />;
+  }
   return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-background w-full">
-        <div className="w-full px-4 sm:px-6 lg:px-10 xl:px-16 py-8">
-          <Dashboard />
-        </div>
-      </main>
-    </>
+    <AppShell>
+      <Dashboard />
+    </AppShell>
   );
 }
+

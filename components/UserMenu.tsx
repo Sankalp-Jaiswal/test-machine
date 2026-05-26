@@ -10,6 +10,23 @@ export function UserMenu() {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const openMenu = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+    setOpen(true);
+  };
+
+  const closeMenu = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => {
+      setOpen(false);
+      closeTimer.current = null;
+    }, 120);
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -21,6 +38,14 @@ export function UserMenu() {
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, [open]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimer.current) {
+        clearTimeout(closeTimer.current);
+      }
+    };
+  }, []);
 
   if (status === "loading") {
     return <div className="h-8 w-24 rounded-full skeleton-shimmer" />;
@@ -43,10 +68,14 @@ export function UserMenu() {
     (session.user.name || session.user.email || "?").slice(0, 1).toUpperCase();
 
   return (
-    <div className="relative" ref={ref}>
+    <div
+      className="relative"
+      ref={ref}
+      onMouseEnter={openMenu}
+      onMouseLeave={closeMenu}
+    >
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-2 rounded-full pl-1.5 pr-3 py-1 glass hover:border-primary/50 transition-colors ring-focus"
         aria-haspopup="menu"
         aria-expanded={open}
