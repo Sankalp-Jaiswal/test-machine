@@ -21,11 +21,14 @@ import toast from "react-hot-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Difficulty } from "@/types";
+import { useSession } from "next-auth/react";
 
 const ALL_DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard"];
 
 export function Settings() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
   const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState("system"); // Appearance theme
   const testBanks = useAppStore((s) => s.testBanks);
@@ -58,10 +61,33 @@ export function Settings() {
   const [filterDuration, setFilterDuration] = useState(30);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [users, setUsers] = useState<Array<{ id: string; email: string; name: string; role: "admin" | "student" }>>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    let active = true;
+    (async () => {
+      setUsersLoading(true);
+      try {
+        const res = await fetch("/api/admin/users");
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || "Failed to load users");
+        if (active) setUsers(Array.isArray(data) ? data : []);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Failed to load users");
+      } finally {
+        if (active) setUsersLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [isAdmin]);
 
   const realBanks = useMemo(
     () => testBanks.filter((b) => !b.id.startsWith("pooled_")),
@@ -147,6 +173,7 @@ const handleCreatePaperFilter = () => {
         <TabsTrigger value="account">Account</TabsTrigger>
         <TabsTrigger value="appearance">Appearance</TabsTrigger>
         <TabsTrigger value="integrations">Integrations</TabsTrigger>
+        {isAdmin ? <TabsTrigger value="users">Manage Users</TabsTrigger> : null}
       </TabsList>
 
       <TabsContent value="account" className="space-y-8">
@@ -168,16 +195,17 @@ const handleCreatePaperFilter = () => {
           </p>
         </motion.section>
 
-        {/* Quick actions */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ActionTile
-            icon={Upload}
-            title="Import questions"
-            description="Add a JSON, PDF, or DOCX file. Auto-grouped by section and difficulty."
-            cta="Open importer"
-            onClick={() => router.push("/import")}
-            accent="primary"
-          />
+        {/* Quick actions */}        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {isAdmin ? (
+            <ActionTile
+              icon={Upload}
+              title="Import questions"
+              description="Add a JSON, PDF, or DOCX file. Auto-grouped by section and difficulty."
+              cta="Open importer"
+              onClick={() => router.push("/import")}
+              accent="primary"
+            />
+          ) : null}
           <ActionTile
             icon={Database}
             title="Pool summary"
@@ -186,37 +214,39 @@ const handleCreatePaperFilter = () => {
             onClick={() => router.push("/")}
             accent="accent"
           />
-          <ActionTile
-            icon={Database}
-            title="Import DB banks"
-            description="Copy existing database test banks into your account (development only)."
-            cta={importing ? "Importing…" : "Import now"}
-            onClick={async () => {
-              if (importing) return;
-              setImporting(true);
-              try {
-                const res = await fetch("/api/test-banks/import-all", { method: "POST" });
-                const body = await res.json();
-                if (!res.ok) {
-                  toast.error(body?.error || "Import failed");
-                } else {
-                  toast.success(`Imported ${body.imported} banks`);
-                  // refresh store
-                  try {
-                    await useAppStore.getState().loadFromStorage();
-                  } catch (_) {}
+          {isAdmin ? (
+            <ActionTile
+              icon={Database}
+              title="Import DB banks"
+              description="Copy existing database test banks into your account (development only)."
+              cta={importing ? "Importing..." : "Import now"}
+              onClick={async () => {
+                if (importing) return;
+                setImporting(true);
+                try {
+                  const res = await fetch("/api/test-banks/import-all", { method: "POST" });
+                  const body = await res.json();
+                  if (!res.ok) {
+                    toast.error(body?.error || "Import failed");
+                  } else {
+                    toast.success(`Imported ${body.imported} banks`);
+                    try {
+                      await useAppStore.getState().loadFromStorage();
+                    } catch (_) {}
+                  }
+                } catch (e) {
+                  toast.error("Import failed");
+                } finally {
+                  setImporting(false);
                 }
-              } catch (e) {
-                toast.error("Import failed");
-              } finally {
-                setImporting(false);
-              }
-            }}
-            accent="primary"
-          />
+              }}
+              accent="primary"
+            />
+          ) : null}
         </section>
 
         <section className="space-y-4">
+          {isAdmin ? (
           <Card className="glass rounded-2xl border-border/60 p-6">
             <div className="mb-4">
               <h2 className="text-base font-semibold text-foreground">Create Saved Paper</h2>
@@ -337,6 +367,7 @@ const handleCreatePaperFilter = () => {
               </div>
             </div>
           </Card>
+          ) : null}
 
           <Card className="glass rounded-2xl border-border/60 p-6">
             <div className="flex items-center justify-between mb-3">
@@ -360,18 +391,20 @@ const handleCreatePaperFilter = () => {
                         {preset.duration} min
                       </p>
                     </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      className="border-destructive/40 text-destructive"
-                      onClick={() => {
-                        deletePaperFilter(preset.id);
-                        toast.success("Saved paper removed");
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {isAdmin ? (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="border-destructive/40 text-destructive"
+                        onClick={() => {
+                          deletePaperFilter(preset.id);
+                          toast.success("Saved paper removed");
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    ) : null}
                   </div>
                 ))}
               </div>
@@ -380,6 +413,7 @@ const handleCreatePaperFilter = () => {
         </section>
 
         {/* Imports list */}
+        {isAdmin ? (
         <motion.section
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
@@ -393,14 +427,16 @@ const handleCreatePaperFilter = () => {
                   {realBanks.length} import{realBanks.length === 1 ? "" : "s"} contributing to your pool
                 </p>
               </div>
-              <Button
-                size="sm"
-                variant="outline"
-                className="rounded-full gap-2"
-                onClick={() => router.push("/import")}
-              >
-                <Upload className="w-3.5 h-3.5" /> Add
-              </Button>
+              {isAdmin ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="rounded-full gap-2"
+                  onClick={() => router.push("/import")}
+                >
+                  <Upload className="w-3.5 h-3.5" /> Add
+                </Button>
+              ) : null}
             </div>
 
             {realBanks.length === 0 ? (
@@ -410,12 +446,14 @@ const handleCreatePaperFilter = () => {
                 <p className="text-xs text-muted-foreground mt-1 mb-4">
                   Once you import a file, its questions show up in your pool.
                 </p>
-                <Button
-                  onClick={() => router.push("/import")}
-                  className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
-                >
-                  <Upload className="w-4 h-4" /> Import questions
-                </Button>
+                {isAdmin ? (
+                  <Button
+                    onClick={() => router.push("/import")}
+                    className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+                  >
+                    <Upload className="w-4 h-4" /> Import questions
+                  </Button>
+                ) : null}
               </div>
             ) : (
               <ul className="space-y-2">
@@ -500,6 +538,7 @@ const handleCreatePaperFilter = () => {
             )}
           </Card>
         </motion.section>
+        ) : null}
       </TabsContent>
 
         <TabsContent value="appearance" className="p-6">
@@ -537,6 +576,58 @@ const handleCreatePaperFilter = () => {
             </Button>
           </div>
         </TabsContent>
+        {isAdmin ? (
+          <TabsContent value="users" className="p-6">
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-foreground">Manage users</h2>
+              <p className="text-sm text-muted-foreground">
+                New users are created as students by default. Promote trusted users to admin.
+              </p>
+              {usersLoading ? (
+                <p className="text-sm text-muted-foreground">Loading users...</p>
+              ) : (
+                <div className="space-y-2">
+                  {users.map((u) => (
+                    <div
+                      key={u.id}
+                      className="flex items-center justify-between rounded-xl border border-border/60 bg-background/60 p-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{u.name || "Unnamed user"}</p>
+                        <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs uppercase tracking-wider text-muted-foreground">{u.role}</span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={async () => {
+                            const nextRole = u.role === "admin" ? "student" : "admin";
+                            try {
+                              const res = await fetch(`/api/admin/users/${encodeURIComponent(u.id)}/role`, {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ role: nextRole }),
+                              });
+                              const body = await res.json().catch(() => ({}));
+                              if (!res.ok) throw new Error(body?.error || "Failed to update role");
+                              setUsers((prev) => prev.map((it) => (it.id === u.id ? { ...it, role: nextRole } : it)));
+                              toast.success(`Role updated to ${nextRole}`);
+                            } catch (e) {
+                              toast.error(e instanceof Error ? e.message : "Failed to update role");
+                            }
+                          }}
+                        >
+                          Make {u.role === "admin" ? "student" : "admin"}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        ) : null}
     </Tabs>
   );
 }
@@ -581,3 +672,4 @@ function ActionTile({
     </button>
   );
 }
+

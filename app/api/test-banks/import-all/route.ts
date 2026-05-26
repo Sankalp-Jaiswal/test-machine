@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { auth } from "@/auth";
+import { isAdminUser } from "@/lib/authz";
 
 export const runtime = "nodejs";
 
@@ -11,8 +12,9 @@ export const runtime = "nodejs";
  */
 export async function POST() {
   const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const isAdmin = await isAdminUser(session?.user?.id);
+  if (!isAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   if (process.env.NODE_ENV !== "development" && process.env.ADMIN_IMPORT !== "true") {

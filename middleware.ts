@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
 const PUBLIC_PATHS = ["/", "/signin"];
 
@@ -8,7 +9,7 @@ const PUBLIC_PATHS = ["/", "/signin"];
  * Importing the full NextAuth instance here would pull mongodb into the edge
  * bundle and break the runtime.
  */
-export default function middleware(req: NextRequest) {
+export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Shared/public question bank endpoints.
@@ -21,13 +22,9 @@ export default function middleware(req: NextRequest) {
   );
   if (isPublic) return NextResponse.next();
 
-  const hasSession =
-    req.cookies.has("authjs.session-token") ||
-    req.cookies.has("__Secure-authjs.session-token") ||
-    req.cookies.has("next-auth.session-token") ||
-    req.cookies.has("__Secure-next-auth.session-token");
+  const token = await getToken({ req, secret: process.env.AUTH_SECRET });
 
-  if (!hasSession) {
+  if (!token) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

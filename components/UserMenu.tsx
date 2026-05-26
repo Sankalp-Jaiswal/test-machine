@@ -125,7 +125,7 @@ export function UserMenu() {
               type="button"
               onClick={() => {
                 setOpen(false);
-                signOut({ callbackUrl: "/signin" });
+                signOut({ callbackUrl: "/" });
               }}
               className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors ring-focus"
               role="menuitem"

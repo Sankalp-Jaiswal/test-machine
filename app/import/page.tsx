@@ -1,11 +1,8 @@
+
 import { AppShell } from "@/components/AppShell";
-import dynamic from "next/dynamic";
+import { ImportTest } from "@/components/ImportTest";
 import { auth } from "@/auth";
 import { isAdminUser } from "@/lib/authz";
-
-const ImportTest = dynamic(() => import("@/components/ImportTest").then((mod) => mod.ImportTest), {
-  ssr: false,
-});
 
 export default async function ImportPage() {
   const session = await auth();
