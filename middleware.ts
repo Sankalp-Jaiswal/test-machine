@@ -22,7 +22,11 @@ export default async function middleware(req: NextRequest) {
   );
   if (isPublic) return NextResponse.next();
 
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET });
+  const token = await getToken({
+    req,
+    // Accept both env naming styles used across NextAuth/Auth.js setups.
+    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  });
 
   if (!token) {
     if (pathname.startsWith("/api/")) {

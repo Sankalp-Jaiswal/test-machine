@@ -212,23 +212,33 @@ export const useAppStore = create<AppState>((set, get) => {
           }
         })();
 
-        if (
-          (banksRes && typeof banksRes === "object" && banksRes.__unauth) ||
-          (resultsRes && typeof resultsRes === "object" && resultsRes.__unauth)
-        ) {
+        const banksUnauthorized = Boolean(
+          banksRes && typeof banksRes === "object" && (banksRes as any).__unauth,
+        );
+        const resultsUnauthorized = Boolean(
+          resultsRes && typeof resultsRes === "object" && (resultsRes as any).__unauth,
+        );
+
+        const testBanksRaw = Array.isArray(banksRes) && banksRes.length > 0 ? banksRes : saved?.testBanks || DEMO_TESTS;
+        const testBanks = normalizeTestBankList(testBanksRaw);
+        const testResults =
+          Array.isArray(resultsRes)
+            ? resultsRes
+            : resultsUnauthorized
+            ? saved?.testResults || []
+            : saved?.testResults || [];
+        const paperFilters = Array.isArray(saved?.paperFilters) ? saved.paperFilters : [];
+
+        // If both are unauthorized, fully fall back to local cache/demo.
+        if (banksUnauthorized && resultsUnauthorized) {
           set({
             testBanks: normalizeTestBankList(saved?.testBanks || DEMO_TESTS),
             testResults: saved?.testResults || [],
-            paperFilters: saved?.paperFilters || [],
+            paperFilters,
             isInitialized: true,
           });
           return;
         }
-
-        const testBanksRaw = Array.isArray(banksRes) && banksRes.length > 0 ? banksRes : saved?.testBanks || DEMO_TESTS;
-        const testBanks = normalizeTestBankList(testBanksRaw);
-        const testResults = Array.isArray(resultsRes) ? resultsRes : saved?.testResults || [];
-        const paperFilters = Array.isArray(saved?.paperFilters) ? saved.paperFilters : [];
 
         set({ testBanks, testResults, paperFilters, isInitialized: true });
         get().saveToStorage();
