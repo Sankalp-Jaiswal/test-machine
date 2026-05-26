@@ -337,8 +337,8 @@ export default function LandingPage() {
         </div>
 
         <div className="flex items-center gap-3.5">
-          <Link href="/auth/signin" className="text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors px-4 py-2">Sign In</Link>
-          <Link href="/auth/signup" className="btn-primary" style={{ padding: "9px 22px", fontSize: "14px" }}>Get Started Free</Link>
+          <Link href="/signin" className="text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors px-4 py-2">Sign In</Link>
+          <Link href="/signin" className="btn-primary" style={{ padding: "9px 22px", fontSize: "14px" }}>Get Started Free</Link>
         </div>
       </nav>
 
@@ -450,10 +450,10 @@ export default function LandingPage() {
           {/* Action CTAs */}
           <motion.div initial="hidden" animate="visible" variants={fadeUp(0.24)} 
             className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto justify-center mb-6">
-            <Link href="/auth/signup" className="btn-primary w-full sm:w-auto justify-center text-base">
+            <Link href="/signin" className="btn-primary w-full sm:w-auto justify-center text-base">
               Get Started Free <ArrowRight size={16} className="stroke-[2.5]" />
             </Link>
-            <Link href="/auth/signin" className="btn-outline w-full sm:w-auto justify-center text-base">
+            <Link href="/signin" className="btn-outline w-full sm:w-auto justify-center text-base">
               Explore Dashboard
             </Link>
           </motion.div>
@@ -1106,10 +1106,10 @@ export default function LandingPage() {
             Join hundreds of serious candidates who are already configuring custom papers and improving daily.
           </p>
           <div className="flex flex-col sm:flex-row items-center gap-3.5 w-full justify-center">
-            <Link href="/auth/signup" className="px-8 py-3.5 bg-white text-slate-950 hover:bg-gray-100 transition-colors font-extrabold rounded-full text-sm sm:text-base shadow-lg shadow-black/10">
+            <Link href="/signin" className="px-8 py-3.5 bg-white text-slate-950 hover:bg-gray-100 transition-colors font-extrabold rounded-full text-sm sm:text-base shadow-lg shadow-black/10">
               Start Free Today
             </Link>
-            <Link href="/auth/signin" className="px-7 py-3 border border-white/40 hover:border-white transition-colors text-white font-semibold rounded-full text-sm sm:text-base">
+            <Link href="/signin" className="px-7 py-3 border border-white/40 hover:border-white transition-colors text-white font-semibold rounded-full text-sm sm:text-base">
               Sign In
             </Link>
           </div>
