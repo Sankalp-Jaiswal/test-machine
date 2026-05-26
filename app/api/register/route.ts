@@ -38,6 +38,7 @@ export async function POST(request: Request) {
       name: name ? String(name).slice(0, 80) : null,
       email,
       password: hashed,
+      role: "student",
       emailVerified: null,
       image: null,
       createdAt: new Date(),

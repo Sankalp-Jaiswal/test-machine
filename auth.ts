@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import bcrypt from "bcryptjs";
+import { ObjectId } from "mongodb";
 import clientPromise from "@/lib/mongodb";
 import { authConfig } from "@/auth.config";
 
@@ -34,6 +35,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name?: string;
           image?: string;
           password?: string;
+          role?: "admin" | "student";
         }>({ email });
 
         if (!user?.password) return null;
@@ -46,8 +48,56 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email,
           name: user.name ?? null,
           image: user.image ?? null,
+          role: user.role === "admin" ? "admin" : "student",
         };
       },
     }),
   ],
+  callbacks: {
+    ...authConfig.callbacks,
+    async jwt({ token, user, trigger }) {
+      const base = authConfig.callbacks?.jwt
+        ? await authConfig.callbacks.jwt({ token, user, trigger } as any)
+        : token;
+      if (user?.role) {
+        base.role = user.role;
+      }
+      if (!base.role && base.id) {
+        try {
+          const client = await clientPromise;
+          const users = client.db().collection("users");
+          const dbUser = await users.findOne<{ role?: "admin" | "student" }>({
+            _id: new ObjectId(String(base.id)),
+          });
+          base.role = dbUser?.role === "admin" ? "admin" : "student";
+        } catch (_) {
+          base.role = "student";
+        }
+      }
+      return base;
+    },
+    async session({ session, token, user }) {
+      const s = authConfig.callbacks?.session
+        ? await authConfig.callbacks.session({ session, token, user } as any)
+        : session;
+      if (s.user) {
+        s.user.role = (token?.role as "admin" | "student") || "student";
+      }
+      return s;
+    },
+  },
+  events: {
+    async createUser({ user }) {
+      try {
+        const client = await clientPromise;
+        const users = client.db().collection("users");
+        await users.updateOne(
+          { _id: new ObjectId(String(user.id)) },
+          { $set: { role: "student" } },
+        );
+      } catch (_) {
+        // ignore
+      }
+    },
+  },
 });

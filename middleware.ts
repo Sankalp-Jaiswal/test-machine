@@ -11,6 +11,11 @@ const PUBLIC_PATHS = ["/", "/signin"];
 export default function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Shared/public question bank endpoints.
+  if (pathname.startsWith("/api/test-banks")) {
+    return NextResponse.next();
+  }
+
   const isPublic = PUBLIC_PATHS.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
