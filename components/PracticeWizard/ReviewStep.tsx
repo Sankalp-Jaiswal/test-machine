@@ -4,14 +4,15 @@
 import { Card } from "@/components/ui/card";
 import { Hash, Clock, Shuffle } from "lucide-react";
 import ReviewTile from "./ReviewTile";
+import type { Difficulty, QuestionOrderMode } from "@/types";
 
 interface Props {
   sections: string[];
   difficulties: Difficulty[];
   count: number;
   duration: number;
-  shuffleQ: boolean;
   shuffleOpts: boolean;
+  orderMode: QuestionOrderMode;
   totalPool: number;
 }
 
@@ -20,8 +21,8 @@ export default function ReviewStep({
   difficulties,
   count,
   duration,
-  shuffleQ,
   shuffleOpts,
+  orderMode,
   totalPool,
 }: Props) {
   return (
@@ -37,7 +38,7 @@ export default function ReviewStep({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <ReviewTile label="Questions" value={`${count}`} icon={Hash} />
         <ReviewTile label="Duration" value={`${duration} min`} icon={Clock} />
-        <ReviewTile label="Question order" value={shuffleQ ? "Shuffled" : "Original"} icon={Shuffle} />
+        <ReviewTile label="Source" value={formatOrderMode(orderMode)} icon={Shuffle} />
         <ReviewTile label="Options" value={shuffleOpts ? "Shuffled" : "A→D"} icon={Shuffle} />
       </div>
 
@@ -81,4 +82,10 @@ export default function ReviewStep({
       </div>
     </Card>
   );
+}
+
+function formatOrderMode(mode: QuestionOrderMode): string {
+  if (mode === "earliest") return "Earliest";
+  if (mode === "random") return "Random";
+  return "Latest";
 }

@@ -5,7 +5,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Clock, Hash, Shuffle } from "lucide-react";
+import { Clock, Hash, ListStart, RotateCcw, Shuffle } from "lucide-react";
+import type { QuestionOrderMode } from "@/types";
+import type { ElementType } from "react";
 
 interface Props {
   poolSize: number;
@@ -13,10 +15,10 @@ interface Props {
   setQuestionCount: (n: number | "all") => void;
   duration: number;
   setDuration: (n: number) => void;
-  shuffleQ: boolean;
-  setShuffleQ: (v: boolean) => void;
   shuffleOpts: boolean;
   setShuffleOpts: (v: boolean) => void;
+  orderMode: QuestionOrderMode;
+  setOrderMode: (v: QuestionOrderMode) => void;
 }
 
 export default function ScopeStep({
@@ -25,10 +27,10 @@ export default function ScopeStep({
   setQuestionCount,
   duration,
   setDuration,
-  shuffleQ,
-  setShuffleQ,
   shuffleOpts,
   setShuffleOpts,
+  orderMode,
+  setOrderMode,
 }: Props) {
   const effective = questionCount === "all" ? poolSize : Math.min(questionCount, poolSize);
 
@@ -122,20 +124,45 @@ export default function ScopeStep({
         </div>
       </div>
 
-      {/* Randomization options */}
+      <div className="rounded-2xl border border-border/60 bg-secondary/40 p-4 space-y-3">
+        <div>
+          <Label className="text-xs font-semibold text-foreground flex items-center gap-2 mb-1">
+            <ListStart className="w-3.5 h-3.5 text-primary" /> Question source
+          </Label>
+          <p className="text-[11px] text-muted-foreground">
+            Latest batch is the default. Earliest starts from the beginning. Random samples across the whole match.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <SourceOption
+            active={orderMode === "latest"}
+            icon={ListStart}
+            title="Latest batch"
+            description="Newest matching questions first"
+            onClick={() => setOrderMode("latest")}
+          />
+          <SourceOption
+            active={orderMode === "earliest"}
+            icon={RotateCcw}
+            title="Earliest batch"
+            description="Oldest matching questions first"
+            onClick={() => setOrderMode("earliest")}
+          />
+          <SourceOption
+            active={orderMode === "random"}
+            icon={Shuffle}
+            title="Random mix"
+            description="Sample from all matches"
+            onClick={() => setOrderMode("random")}
+          />
+        </div>
+      </div>
+
       <div className="rounded-2xl border border-border/60 bg-secondary/40 p-4 flex flex-wrap gap-3 items-center justify-between">
         <div className="text-xs font-semibold text-foreground flex items-center gap-2">
-          <Shuffle className="w-3.5 h-3.5 text-primary" /> Randomization
+          <Shuffle className="w-3.5 h-3.5 text-primary" /> Option order
         </div>
         <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant={shuffleQ ? "default" : "outline"}
-            className="rounded-full"
-            onClick={() => setShuffleQ(!shuffleQ)}
-          >
-            {shuffleQ ? "Shuffling questions" : "Original order"}
-          </Button>
           <Button
             size="sm"
             variant={shuffleOpts ? "default" : "outline"}
@@ -147,5 +174,37 @@ export default function ScopeStep({
         </div>
       </div>
     </Card>
+  );
+}
+
+function SourceOption({
+  active,
+  icon: Icon,
+  title,
+  description,
+  onClick,
+}: {
+  active: boolean;
+  icon: ElementType;
+  title: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-xl border p-3 text-left transition-colors ring-focus ${
+        active
+          ? "border-primary/50 bg-primary/10 text-foreground"
+          : "border-border/60 bg-background/70 text-muted-foreground hover:text-foreground hover:border-primary/30"
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        <Icon className={`h-4 w-4 ${active ? "text-primary" : "text-muted-foreground"}`} />
+        <span className="text-sm font-semibold">{title}</span>
+      </div>
+      <p className="mt-1 text-[11px] leading-relaxed">{description}</p>
+    </button>
   );
 }

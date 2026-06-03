@@ -10,6 +10,7 @@ import {
 } from "@/types";
 import { DEMO_TESTS } from "@/lib/demoData";
 import { normalizeSection } from "@/lib/sectionNormalizer";
+import { buildQuestionOrder } from "./orderUtils";
 
 type StartTestOptions = {
   sections?: string[];
@@ -22,6 +23,8 @@ type StartTestOptions = {
   shuffleQuestions?: boolean;
   /** Randomize options (A/B/C/D) per question, remapping correctAnswer. */
   shuffleOptions?: boolean;
+  /** Ordering mode for selecting questions. Default 'latest'. */
+  orderMode?: "latest" | "earliest" | "random";
   /** Force an exact question id ordering — used by retry-same-questions. */
   forcedQuestionOrder?: number[];
   /** Pre-built per-question snapshot (used by retry from a saved result). */
@@ -56,6 +59,7 @@ interface AppState {
     duration: number;
     shuffleQuestions: boolean;
     shuffleOptions: boolean;
+    orderMode?: "latest" | "earliest" | "random";
   }) => string | null;
   addPaperFilter: (preset: Omit<PaperFilterPreset, "id" | "createdAt">) => string;
   deletePaperFilter: (id: string) => void;
@@ -113,54 +117,6 @@ const normalizeTestBankSections = <T extends TestBank>(test: T): T => ({
 });
 
 const normalizeTestBankList = <T extends TestBank>(tests: T[]): T[] => tests.map((test) => normalizeTestBankSections(test));
-
-const buildQuestionOrder = (
-  test: TestBank,
-  sections: string[],
-  difficulties: Difficulty[],
-  testResults: TestResult[],
-  shuffleEnabled: boolean,
-) => {
-  const exposureMap: Record<number, number> = {};
-  testResults
-    .filter((result) => result.testId === test.id)
-    .forEach((result) => {
-      result.questionAttempts?.forEach((qa) => {
-        exposureMap[qa.questionId] = (exposureMap[qa.questionId] || 0) + 1;
-      });
-    });
-
-  const selected = test.questions.filter(
-    (q) =>
-      (sections.length === 0 || sections.includes(q.section)) &&
-      (difficulties.length === 0 || difficulties.includes(q.difficulty)),
-  );
-
-  if (selected.length === 0) {
-    if (sections.length === 0 && difficulties.length === 0) {
-      return shuffleEnabled ? shuffle(test.questions.map((q) => q.id)) : test.questions.map((q) => q.id);
-    }
-    return [];
-  }
-
-  if (!shuffleEnabled) {
-    // Preserve original order, no exposure-prioritization.
-    return selected.map((q) => q.id);
-  }
-
-  const groups: Record<number, number[]> = {};
-  selected.forEach((q) => {
-    const count = exposureMap[q.id] || 0;
-    groups[count] = groups[count] || [];
-    groups[count].push(q.id);
-  });
-
-  const sortedExposureLevels = Object.keys(groups)
-    .map(Number)
-    .sort((a, b) => a - b);
-
-  return sortedExposureLevels.flatMap((level) => shuffle(groups[level]));
-};
 
 export const useAppStore = create<AppState>((set, get) => {
   const initial = loadInitialState();
@@ -352,6 +308,7 @@ export const useAppStore = create<AppState>((set, get) => {
       const sections = options?.sections ?? [];
       const difficulties = options?.difficulties ?? [];
       const shuffleQ = options?.shuffleQuestions ?? true;
+      const orderMode = options?.orderMode ?? "latest";
       const shuffleOpts = options?.shuffleOptions ?? false;
       const duration = options?.duration ?? test.duration;
 
@@ -368,7 +325,14 @@ export const useAppStore = create<AppState>((set, get) => {
             .filter((q): q is Question => Boolean(q));
         }
       } else {
-        questionOrder = buildQuestionOrder(test, sections, difficulties, get().testResults, shuffleQ);
+        questionOrder = buildQuestionOrder(
+          test,
+          sections,
+          difficulties,
+          get().testResults,
+          shuffleQ,
+          orderMode,
+        );
         if (options?.count && options.count > 0) {
           questionOrder = questionOrder.slice(0, options.count);
         }
@@ -680,6 +644,7 @@ export const useAppStore = create<AppState>((set, get) => {
         duration: config.duration,
         shuffleQuestions: config.shuffleQuestions,
         shuffleOptions: config.shuffleOptions,
+        orderMode: config.orderMode,
       });
     },
 

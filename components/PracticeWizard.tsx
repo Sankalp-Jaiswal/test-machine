@@ -8,7 +8,7 @@ import { Layers, Gauge, Hash, Check, Upload, Sparkles, ArrowLeft, ArrowRight, Pl
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Question, Difficulty } from "@/types";
+import { Question, Difficulty, QuestionOrderMode } from "@/types";
 import { useAppStore } from "@/store/useAppStore";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,8 +58,8 @@ export function PracticeWizard() {
   ]);
   const [questionCount, setQuestionCount] = useState<number | "all">(20);
   const [duration, setDuration] = useState(30);
-  const [shuffleQ, setShuffleQ] = useState(true);
   const [shuffleOpts, setShuffleOpts] = useState(false);
+  const [orderMode, setOrderMode] = useState<QuestionOrderMode>("latest");
   const [selectedFilterId, setSelectedFilterId] = useState("");
   const [sessionName, setSessionName] = useState("");
   const [nameTouched, setNameTouched] = useState(false);
@@ -184,8 +184,8 @@ export function PracticeWizard() {
     setSelectedDifficulties(["easy", "medium", "hard"]);
     setQuestionCount(20);
     setDuration(30);
-    setShuffleQ(true);
     setShuffleOpts(false);
+    setOrderMode("latest");
     setSelectedFilterId("");
     setSessionName("");
     setNameTouched(false);
@@ -205,6 +205,7 @@ export function PracticeWizard() {
     );
     setQuestionCount(preset.questionCount);
     setDuration(preset.duration);
+    setOrderMode(preset.orderMode ?? "latest");
     setSessionName(preset.name);
     setNameTouched(true);
     setStep("review");
@@ -222,8 +223,9 @@ export function PracticeWizard() {
       difficulties: selectedDifficulties,
       count: effectiveCount,
       duration,
-      shuffleQuestions: shuffleQ,
+      shuffleQuestions: orderMode === "random",
       shuffleOptions: shuffleOpts,
+      orderMode,
     });
     if (sessionId) {
       router.push(`/test/${sessionId}`);
@@ -289,7 +291,7 @@ export function PracticeWizard() {
               <p className="mt-1 text-xs text-muted-foreground">
                 {selectedPreset.sections.length} sections • {selectedPreset.difficulties.join("/")} •{" "}
                 {selectedPreset.questionCount === "all" ? "all questions" : `${selectedPreset.questionCount} questions`} •{" "}
-                {selectedPreset.duration} min
+                {selectedPreset.duration} min · {formatOrderMode(selectedPreset.orderMode ?? "latest")}
               </p>
             </div>
           )}
@@ -345,10 +347,10 @@ export function PracticeWizard() {
               setQuestionCount={setQuestionCount}
               duration={duration}
               setDuration={setDuration}
-              shuffleQ={shuffleQ}
-              setShuffleQ={setShuffleQ}
               shuffleOpts={shuffleOpts}
               setShuffleOpts={setShuffleOpts}
+              orderMode={orderMode}
+              setOrderMode={setOrderMode}
             />
           )}
 
@@ -358,8 +360,8 @@ export function PracticeWizard() {
               difficulties={selectedDifficulties}
               count={effectiveCount}
               duration={duration}
-              shuffleQ={shuffleQ}
               shuffleOpts={shuffleOpts}
+              orderMode={orderMode}
               totalPool={pool.length}
             />
           )}
@@ -426,4 +428,10 @@ function buildSessionName(sections: string[], difficulties: Difficulty[]): strin
   const diffPart =
     difficulties.length === 3 ? "" : difficulties.length === 0 ? "" : ` · ${difficulties.join("/")}`;
   return `${sectionPart}${diffPart}`;
+}
+
+function formatOrderMode(mode: QuestionOrderMode): string {
+  if (mode === "earliest") return "Earliest batch";
+  if (mode === "random") return "Random mix";
+  return "Latest batch";
 }

@@ -1,4 +1,5 @@
 export type Difficulty = "easy" | "medium" | "hard";
+export type QuestionOrderMode = "latest" | "earliest" | "random";
 
 export interface Question {
   id: number;
@@ -30,6 +31,7 @@ export interface PaperFilterPreset {
   difficulties: Difficulty[];
   questionCount: number | "all";
   duration: number;
+  orderMode?: QuestionOrderMode;
   createdAt: number;
 }
 
@@ -54,6 +56,7 @@ export interface TestAttempt {
     count?: number;
     shuffleQuestions: boolean;
     shuffleOptions: boolean;
+    orderMode?: QuestionOrderMode;
     sourceBankIds?: string[];
   };
 }
@@ -101,6 +104,7 @@ export interface TestResult {
     count?: number;
     shuffleQuestions: boolean;
     shuffleOptions: boolean;
+    orderMode?: QuestionOrderMode;
     sourceBankIds?: string[];
   };
 }

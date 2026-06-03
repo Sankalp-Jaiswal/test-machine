@@ -14,14 +14,18 @@ import {
   ChevronRight,
   Layers,
   Calendar,
+  ListStart,
+  RotateCcw,
+  Shuffle,
   X,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import toast from "react-hot-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { Difficulty } from "@/types";
+import type { Difficulty, QuestionOrderMode } from "@/types";
 import { useSession } from "next-auth/react";
+import type { ElementType } from "react";
 
 const ALL_DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard"];
 
@@ -59,6 +63,7 @@ export function Settings() {
   const [selectedFilterDifficulties, setSelectedFilterDifficulties] = useState<Difficulty[]>([]);
   const [filterQuestionCount, setFilterQuestionCount] = useState<number | "all">("all");
   const [filterDuration, setFilterDuration] = useState(30);
+  const [filterOrderMode, setFilterOrderMode] = useState<QuestionOrderMode>("latest");
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [users, setUsers] = useState<Array<{ id: string; email: string; name: string; role: "admin" | "student" }>>([]);
@@ -147,6 +152,7 @@ const handleCreatePaperFilter = () => {
     difficulties: selectedFilterDifficulties,
     questionCount: normalizedCount,
     duration: Math.max(1, filterDuration),
+    orderMode: filterOrderMode,
   });
 
   setFilterName("");
@@ -154,6 +160,7 @@ const handleCreatePaperFilter = () => {
   setSelectedFilterDifficulties([]);
   setFilterQuestionCount("all");
   setFilterDuration(30);
+  setFilterOrderMode("latest");
   toast.success("Saved paper created");
 };
 
@@ -358,12 +365,35 @@ const handleCreatePaperFilter = () => {
                     className="bg-background border-border/70"
                   />
                 </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Pool size auto-updates from selected sections + difficulties.
-                </p>
-                <Button onClick={handleCreatePaperFilter} className="w-full">
-                  Save Paper
-                </Button>
+	                <p className="text-[11px] text-muted-foreground">
+	                  Pool size auto-updates from selected sections + difficulties.
+	                </p>
+	                <div className="rounded-xl border border-border/60 bg-secondary/20 p-3">
+	                  <p className="mb-2 text-xs font-semibold text-foreground">Question source</p>
+	                  <div className="grid grid-cols-1 gap-2">
+	                    <MiniSourceOption
+	                      active={filterOrderMode === "latest"}
+	                      icon={ListStart}
+	                      title="Latest batch"
+	                      onClick={() => setFilterOrderMode("latest")}
+	                    />
+	                    <MiniSourceOption
+	                      active={filterOrderMode === "earliest"}
+	                      icon={RotateCcw}
+	                      title="Earliest batch"
+	                      onClick={() => setFilterOrderMode("earliest")}
+	                    />
+	                    <MiniSourceOption
+	                      active={filterOrderMode === "random"}
+	                      icon={Shuffle}
+	                      title="Random mix"
+	                      onClick={() => setFilterOrderMode("random")}
+	                    />
+	                  </div>
+	                </div>
+	                <Button onClick={handleCreatePaperFilter} className="w-full">
+	                  Save Paper
+	                </Button>
               </div>
             </div>
           </Card>
@@ -388,7 +418,7 @@ const handleCreatePaperFilter = () => {
                       <p className="text-xs text-muted-foreground mt-1">
                         {preset.sections.length} sections • {preset.difficulties.join("/")} •{" "}
                         {preset.questionCount === "all" ? "all questions" : `${preset.questionCount} questions`} •{" "}
-                        {preset.duration} min
+	                        {preset.duration} min â€¢ {formatOrderMode(preset.orderMode ?? "latest")}
                       </p>
                     </div>
                     {isAdmin ? (
@@ -671,5 +701,38 @@ function ActionTile({
       </div>
     </button>
   );
+}
+
+function MiniSourceOption({
+  active,
+  icon: Icon,
+  title,
+  onClick,
+}: {
+  active: boolean;
+  icon: ElementType;
+  title: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-semibold transition-colors ring-focus ${
+        active
+          ? "border-primary/50 bg-primary/10 text-primary"
+          : "border-border/70 bg-background text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      <Icon className="h-3.5 w-3.5" />
+      <span>{title}</span>
+    </button>
+  );
+}
+
+function formatOrderMode(mode: QuestionOrderMode): string {
+  if (mode === "earliest") return "Earliest batch";
+  if (mode === "random") return "Random mix";
+  return "Latest batch";
 }
 

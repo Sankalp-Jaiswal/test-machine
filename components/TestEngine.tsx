@@ -28,6 +28,13 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import type { Difficulty } from "@/types";
 
 const OPT_KEYS = ["A", "B", "C", "D"] as const;
@@ -97,6 +104,27 @@ export function TestEngine({ testId }: { testId: string }) {
   const [customDuration, setCustomDuration] = useState<number | null>(null);
   const [shuffleQ, setShuffleQ] = useState(true);
   const [shuffleOpts, setShuffleOpts] = useState(false);
+  const [orderMode, setOrderMode] = useState<"latest" | "earliest" | "random">("latest");
+
+  // Persist user preference for order mode
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("cil-default-order-mode");
+      if (saved === "latest" || saved === "earliest" || saved === "random") {
+        setOrderMode(saved);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("cil-default-order-mode", orderMode);
+    } catch (e) {
+      // ignore
+    }
+  }, [orderMode]);
 
   const currentAttempt = useAppStore((s) => s.currentAttempt);
   const getCurrentTest = useAppStore((s) => s.getCurrentTest);
@@ -445,6 +473,19 @@ export function TestEngine({ testId }: { testId: string }) {
                 >
                   Shuffle Options
                 </button>
+                <div className="flex items-center gap-2 ml-2">
+                  <div className="text-xs text-muted-foreground/90 mr-1">Order:</div>
+                  <Select value={orderMode} onValueChange={(v) => setOrderMode(v as any)}>
+                    <SelectTrigger className="h-8 w-36" size="sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="latest">Latest</SelectItem>
+                      <SelectItem value="earliest">Earliest</SelectItem>
+                      <SelectItem value="random">Random</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
@@ -489,7 +530,8 @@ export function TestEngine({ testId }: { testId: string }) {
                       count: questionCount === "all" ? undefined : questionCount,
                       duration: effectiveDuration,
                       shuffleQuestions: shuffleQ,
-                      shuffleOptions: shuffleOpts,
+                          shuffleOptions: shuffleOpts,
+                          orderMode,
                     })
                   }
                   className="rounded-lg bg-primary hover:bg-primary/95 text-primary-foreground text-xs font-semibold gap-1.5 h-9 w-full sm:w-auto px-6 cursor-pointer shadow-xs"
