@@ -115,3 +115,62 @@ export interface AnswerState {
   isMarked: boolean;
   timeSpent: number;
 }
+
+export type RequestStatus = "pending" | "under_review" | "approved" | "rejected" | "requires_changes";
+export type RequestType = "create_paper" | "add_questions" | "general";
+
+export interface AuditLogEntry {
+  status: RequestStatus;
+  action: string;
+  timestamp: number; // UTC timestamp
+  changedBy: string; // name (email)
+  remarks?: string;
+}
+
+export interface RequestPayload {
+  // create_paper
+  testName?: string;
+  duration?: number;
+  questions?: Question[];
+
+  // add_questions
+  testId?: string;
+  newQuestions?: Question[];
+
+  // general
+  subject?: string;
+  category?: "feature" | "incorrect_question" | "correction" | "technical" | "suggestion";
+  description?: string;
+  attachmentName?: string;
+  attachmentData?: string; // base64
+}
+
+export interface RequestDocument {
+  _id?: string;
+  requestNumber: string;
+  type: RequestType;
+  title: string;
+  status: RequestStatus;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  version: number;
+  payload: RequestPayload;
+  createdAt: number;
+  updatedAt: number;
+  adminRemarks?: string;
+  reviewedBy?: string;
+  reviewedAt?: number;
+  history: AuditLogEntry[];
+}
+
+export interface NotificationDocument {
+  _id?: string;
+  userId: string;
+  requestNumber: string;
+  type: "submitted" | "under_review" | "approved" | "rejected" | "changes_requested";
+  message: string;
+  read: boolean;
+  createdAt: number;
+}
+

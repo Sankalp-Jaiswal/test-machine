@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Sidebar, MobileTopBar } from "@/components/Sidebar";
 import { UserMenu } from "@/components/UserMenu";
+import { NotificationCenter } from "@/components/NotificationCenter";
 
 const COLLAPSE_KEY = "prep-arena-sidebar-collapsed";
 
@@ -48,7 +49,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       />
       <div className={`flex min-h-screen flex-col transition-[padding] duration-200 ${mainOffset}`}>
         <MobileTopBar onOpen={() => setMobileOpen(true)} />
-        <div className="hidden lg:flex h-16 items-center justify-end border-b border-sidebar-border bg-background px-6 xl:px-8">
+        <div className="hidden lg:flex h-16 items-center justify-end border-b border-sidebar-border bg-background px-6 xl:px-8 gap-4">
+          <NotificationCenter />
           <UserMenu />
         </div>
         <main className="flex-1 min-h-0 w-full">
